@@ -6,8 +6,19 @@ import { Reveal } from '../components/Reveal'
 import { SectionHeading } from '../components/SectionHeading'
 import { profile } from '../data/portfolio'
 
+type SubmitStatus = 'idle' | 'success' | 'error'
+
+const emailJsConfig = {
+  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID ?? '',
+  templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID ?? '',
+  publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY ?? '',
+}
+
 export function ContactSection() {
   const [copied, setCopied] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
+  const [statusMessage, setStatusMessage] = useState('')
 
   const copyEmail = async () => {
     await navigator.clipboard.writeText(profile.email)
@@ -15,15 +26,59 @@ export function ContactSection() {
     window.setTimeout(() => setCopied(false), 1800)
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const formData = new FormData(form)
     const name = String(formData.get('name') ?? '')
+    const email = String(formData.get('email') ?? '')
     const message = String(formData.get('message') ?? '')
-    const subject = encodeURIComponent(`Portfolio inquiry from ${name || 'Visitor'}`)
-    const body = encodeURIComponent(message)
 
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`
+    if (!emailJsConfig.serviceId || !emailJsConfig.templateId || !emailJsConfig.publicKey) {
+      setSubmitStatus('error')
+      setStatusMessage('Email service is not configured yet.')
+      return
+    }
+
+    setIsSending(true)
+    setSubmitStatus('idle')
+    setStatusMessage('')
+
+    try {
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          service_id: emailJsConfig.serviceId,
+          template_id: emailJsConfig.templateId,
+          user_id: emailJsConfig.publicKey,
+          template_params: {
+            from_name: name,
+            from_email: email,
+            reply_to: email,
+            to_email: profile.email,
+            subject: `Portfolio inquiry from ${name || 'Visitor'}`,
+            message,
+          },
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || 'Email send failed')
+      }
+
+      form.reset()
+      setSubmitStatus('success')
+      setStatusMessage('Message sent successfully.')
+    } catch {
+      setSubmitStatus('error')
+      setStatusMessage('Could not send the message. Please try again.')
+    } finally {
+      setIsSending(false)
+    }
   }
 
   return (
@@ -111,10 +166,23 @@ export function ContactSection() {
               </label>
               <button
                 type="submit"
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 dark:bg-white dark:text-stone-950 dark:hover:bg-stone-200"
+                disabled={isSending}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:translate-y-0 dark:bg-white dark:text-stone-950 dark:hover:bg-stone-200"
               >
-                Send Message <Mail size={17} />
+                {isSending ? 'Sending...' : 'Send Message'} <Mail size={17} />
               </button>
+              {statusMessage ? (
+                <p
+                  className={`rounded-md border px-4 py-3 text-sm ${
+                    submitStatus === 'success'
+                      ? 'border-teal-500/25 bg-teal-500/10 text-teal-700 dark:text-teal-200'
+                      : 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-200'
+                  }`}
+                  role={submitStatus === 'error' ? 'alert' : 'status'}
+                >
+                  {statusMessage}
+                </p>
+              ) : null}
             </form>
           </Reveal>
         </div>

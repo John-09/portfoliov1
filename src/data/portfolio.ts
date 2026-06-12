@@ -12,6 +12,7 @@ import {
   TimerReset,
   Workflow,
 } from 'lucide-react'
+import resumePdf from '../assets/John_Sam_Daniel_FullStack.pdf'
 
 export const profile = {
   name: 'John Sam Daniel P',
@@ -19,10 +20,10 @@ export const profile = {
   intro:
     'Full Stack Developer with 3+ years of experience building scalable production-grade web applications across React, TypeScript, Node.js, and SQL-backed platforms.',
   location: 'India',
-  email: 'johnsamdanielp@gmail.com',
-  resumeUrl: '/John-Sam-Daniel-P-Resume.pdf',
-  githubUrl: 'https://github.com/JohnSamDanielP',
-  linkedinUrl: 'https://www.linkedin.com/in/john-sam-daniel-p/',
+  email: 'johnsd2709@gmail.com',
+  resumeUrl: resumePdf,
+  githubUrl: 'https://github.com/John-09?tab=repositories',
+  linkedinUrl: 'https://www.linkedin.com/in/johnsamp/',
 }
 
 export const navigation = [

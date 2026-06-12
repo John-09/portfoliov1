@@ -13,6 +13,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*
+!.env.example
 
 # OS files
 .DS_Store
@@ -35,3 +36,4 @@ coverage/
 
 # Cache
 .cache/
+.vercel

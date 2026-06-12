@@ -39,7 +39,7 @@ export function HeroSection() {
             </a>
             <a
               href={profile.resumeUrl}
-              download
+              download="John_Sam_Daniel_FullStack.pdf"
               className="inline-flex items-center justify-center gap-2 rounded-md border border-black/10 bg-white/75 px-5 py-3 text-sm font-semibold text-stone-800 transition hover:-translate-y-0.5 hover:bg-white dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
             >
               Download Resume <Download size={17} />
